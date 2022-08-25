@@ -4,7 +4,6 @@ require("hardhat-deploy")
 require("solidity-coverage")
 require("hardhat-gas-reporter")
 require("hardhat-contract-sizer")
-require("./tasks")
 require("@appliedblockchain/chainlink-plugins-fund-link")
 require("dotenv").config()
 
@@ -21,12 +20,16 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY
 // Your API key for Etherscan, obtain one at https://etherscan.io/
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "Your etherscan API key"
 const REPORT_GAS = process.env.REPORT_GAS || false
+const MAINNET_RPC_URL = process.env.MAINNET_RPC_URL
 
 module.exports = {
     defaultNetwork: "hardhat",
     networks: {
         hardhat: {
             chainId: 31337,
+            forking: {
+                url: MAINNET_RPC_URL,
+            },
         },
         localhost: {
             chainId: 31337,
@@ -80,7 +83,7 @@ module.exports = {
                 version: "0.6.6",
             },
             {
-                version: "0.4.24",
+                version: "0.4.19",
             },
         ],
     },
