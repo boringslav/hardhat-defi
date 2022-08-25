@@ -10,8 +10,13 @@ const { getWeth, AMOUNT } = require("./getWeth")
 
     //deposit
     const wethTokenAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+
     //approve
     await approveErc20(wethTokenAddress, lendingPool.address, AMOUNT, deployer)
+
+    //deposit
+    await lendingPool.deposit(wethTokenAddress, AMOUNT, deployer, 0)
+    console.log("Deposited!")
 })()
     .then(() => process.exit(0))
     .catch((error) => {
