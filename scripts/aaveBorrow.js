@@ -21,18 +21,28 @@ const { getWeth, AMOUNT } = require("./getWeth")
     //How much we have borrowed, how much we can borrow, how much we have in collateral
     let { availableBorrowsETH, totalDebtETH } = await getBorrowUserData(lendingPool, deployer)
 
-    //Borrow Time!
     //availableBorrowsEth ?? What is the conversion rate on DAI?
     const daiPrice = await getDaiPrice()
     const amountDaiToBorrow = availableBorrowsETH.toString() * 0.95 * (1 / daiPrice.toNumber())
     const amountDaiToBorrowInWei = ethers.utils.parseEther(amountDaiToBorrow.toString())
     console.log(`You can borrow ${amountDaiToBorrowInWei} DAI`)
+
+    //Borrow Time!
+    const daiTokenAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+    await borrowDai(daiTokenAddress, lendingPool, amountDaiToBorrowInWei, deployer)
+    await getBorrowUserData(lendingPool, deployer)
 })()
     .then(() => process.exit(0))
     .catch((error) => {
         console.error(error)
         process.exit(1)
     })
+
+const borrowDai = async (daiAddress, lendingPool, amountDaiToBorrowInWei, account) => {
+    const borrowTx = await lendingPool.borrow(daiAddress, amountDaiToBorrowInWei, 1, 0, account)
+    await borrowTx.wait(1)
+    console.log("You've borrowed!")
+}
 
 /**
  * Gets the price of DAI from the Chainlink Data Feeds
@@ -46,7 +56,6 @@ const getDaiPrice = async () => {
 
     const price = (await daiEthPriceFeed.latestRoundData()).at(1)
     console.log("The DAI/ETH price is: ", price.toString())
-    console.log(price)
     return price
 }
 
