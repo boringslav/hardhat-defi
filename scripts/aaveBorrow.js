@@ -17,12 +17,33 @@ const { getWeth, AMOUNT } = require("./getWeth")
     //deposit
     await lendingPool.deposit(wethTokenAddress, AMOUNT, deployer, 0)
     console.log("Deposited!")
+
+    //Borrow Time!
+    //How much we have borrowed, how much we can borrow, how much we have in collateral
+    let { availableBorrowsETH, totalDebtETH } = await getBorrowUserData(lendingPool, deployer)
 })()
     .then(() => process.exit(0))
     .catch((error) => {
         console.error(error)
         process.exit(1)
     })
+
+/**
+ *  Gets the user account data from AAVE
+ * @param {Object} lendingPool - The lending Pool contract
+ * @param {String} account
+ * @returns {{totalCollateralETH: String, availableBorrowsETH: String, totalDebtETH: String}}
+ */
+const getBorrowUserData = async (lendingPool, account) => {
+    console.log("Lending pool", lendingPool)
+    const { totalCollateralETH, totalDebtETH, availableBorrowsETH } =
+        await lendingPool.getUserAccountData(account)
+
+    console.log(`You have ${totalCollateralETH} worth of ETH deposited.`)
+    console.log(`You have ${totalDebtETH} worth of ETH borrowed.`)
+    console.log(`You can borrow  ${availableBorrowsETH} worth of ETH.`)
+    return { totalCollateralETH, totalDebtETH, availableBorrowsETH }
+}
 
 /**
  * Sets amount as the allowence  of spender over the caller's tokens.
