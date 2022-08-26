@@ -18,9 +18,15 @@ const { getWeth, AMOUNT } = require("./getWeth")
     await lendingPool.deposit(wethTokenAddress, AMOUNT, deployer, 0)
     console.log("Deposited!")
 
-    //Borrow Time!
     //How much we have borrowed, how much we can borrow, how much we have in collateral
     let { availableBorrowsETH, totalDebtETH } = await getBorrowUserData(lendingPool, deployer)
+
+    //Borrow Time!
+    //availableBorrowsEth ?? What is the conversion rate on DAI?
+    const daiPrice = await getDaiPrice()
+    const amountDaiToBorrow = availableBorrowsETH.toString() * 0.95 * (1 / daiPrice.toNumber())
+    const amountDaiToBorrowInWei = ethers.utils.parseEther(amountDaiToBorrow.toString())
+    console.log(`You can borrow ${amountDaiToBorrowInWei} DAI`)
 })()
     .then(() => process.exit(0))
     .catch((error) => {
@@ -29,13 +35,28 @@ const { getWeth, AMOUNT } = require("./getWeth")
     })
 
 /**
+ * Gets the price of DAI from the Chainlink Data Feeds
+ * @returns {BigNumber { _hex: '0x021de8f563d500', _isBigNumber: true }} - DAI price
+ */
+const getDaiPrice = async () => {
+    const daiEthPriceFeed = await ethers.getContractAt(
+        "AggregatorV3Interface",
+        "0x773616e4d11a78f511299002da57a0a94577f1f4"
+    )
+
+    const price = (await daiEthPriceFeed.latestRoundData()).at(1)
+    console.log("The DAI/ETH price is: ", price.toString())
+    console.log(price)
+    return price
+}
+
+/**
  *  Gets the user account data from AAVE
  * @param {Object} lendingPool - The lending Pool contract
  * @param {String} account
  * @returns {{totalCollateralETH: String, availableBorrowsETH: String, totalDebtETH: String}}
  */
 const getBorrowUserData = async (lendingPool, account) => {
-    console.log("Lending pool", lendingPool)
     const { totalCollateralETH, totalDebtETH, availableBorrowsETH } =
         await lendingPool.getUserAccountData(account)
 
