@@ -23,7 +23,7 @@ const { getWeth, AMOUNT } = require("./getWeth")
 
     //availableBorrowsEth ?? What is the conversion rate on DAI?
     const daiPrice = await getDaiPrice()
-    const amountDaiToBorrow = availableBorrowsETH.toString() * 0.95 * (1 / daiPrice.toNumber())
+    const amountDaiToBorrow = availableBorrowsETH.toString() * 0.95 * (1 / daiPrice.toNumber()) // 0.95 - we dont want to hit the maximum amount of what we can borrow
     const amountDaiToBorrowInWei = ethers.utils.parseEther(amountDaiToBorrow.toString())
     console.log(`You can borrow ${amountDaiToBorrowInWei} DAI`)
 
@@ -31,12 +31,22 @@ const { getWeth, AMOUNT } = require("./getWeth")
     const daiTokenAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
     await borrowDai(daiTokenAddress, lendingPool, amountDaiToBorrowInWei, deployer)
     await getBorrowUserData(lendingPool, deployer)
+
+    //Repay
+    await repay(amountDaiToBorrowInWei, daiTokenAddress, lendingPool, deployer)
 })()
     .then(() => process.exit(0))
     .catch((error) => {
         console.error(error)
         process.exit(1)
     })
+
+const repay = async (amount, daiAddress, lendingPool, account) => {
+    await approveErc20(daiAddress, lendingPool.address, amount, account)
+    const repayTx = await lendingPool.repay(daiAddress, amount, 1, account)
+    await repay.wait(1)
+    console.log("Repaid!")
+}
 
 const borrowDai = async (daiAddress, lendingPool, amountDaiToBorrowInWei, account) => {
     const borrowTx = await lendingPool.borrow(daiAddress, amountDaiToBorrowInWei, 1, 0, account)
